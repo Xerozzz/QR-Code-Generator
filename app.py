@@ -20,7 +20,7 @@ def QR(link):
     logo = Image.open(Logo_link)
     
     # taking base width
-    basewidth = 150
+    basewidth = 80
     
     # adjust image size
     wpercent = (basewidth/float(logo.size[0]))
