@@ -1,0 +1,13 @@
+<h1>ACSO QR Generator WHEEEEEEEEE</h1>
+<p>Why pay when you can make free one yourself</p>
+<form method="post">
+    <label for="link">Link to QR:</label>
+    <input type="text" id="link" name="link" size="60"><br><br>
+    <input type="submit" value="Submit">
+</form>
+
+{% if submit == True %}
+    <h2>QR Code:</h2>
+    <p>Right clicks and save or copy image!</p>
+    <img src="{{url_for('static', filename='QR.png')}}" align="middle" />
+{% endif %}
