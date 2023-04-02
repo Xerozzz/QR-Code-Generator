@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Login to QR Code Generator</h1>
+<p>Login or register</p>
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <ul class="list-group">
+        {% for cat, i in messages %}
+            <li class="list-group-item list-group-item-{{ cat }}"> {{ i }} </li>
+        {% endfor %}
+    </ul>
+{% endif %}
+{% endwith %}
+<form method="post">
+    <label for="option">Option</label>
+    <select name="option" id="option">
+        <option value="login">Login</option>
+        <option value="register">Register</option>
+    </select><br><br>
+    <label for="username">Username</label>
+    <input type="text" id="username" name="username"><br><br>
+    <label for="password">Password</label>
+    <input type="text" id="password" name="password"><br><br>
+    <input type="submit" value="Submit">
+</form>
+{% endblock %}

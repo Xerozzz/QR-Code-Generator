@@ -1,17 +1,72 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, session, flash, redirect, url_for
 import qrcode
+import sqlite3
 from PIL import Image
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'mysecret' # Make sure to change this to your own value!!!
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80)
+
+@app.before_request
+def check_login():
+    if "username" not in session and request.endpoint != 'login':
+        return redirect(url_for('login'))
 
 def db_connect():
     conn = sqlite3.connect('database.db')
     conn.row_factory = sqlite3.Row
     return conn
 
-@app.route('/', methods=('GET', 'POST'))
+@app.route('/logout', methods=['GET'])
+def logout():
+    session.pop("username")
+    return redirect(url_for('login'))
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    print("Test")
+    if request.method == "POST":
+        print("Test")
+        # Get form information
+        username = request.form["username"]
+        password = request.form["password"]
+        option = request.form["option"]
+
+        # Connect to database
+        conn = db_connect()
+        cur = conn.cursor()
+
+        # Login Option
+        if option == "login":
+            cur.execute("SELECT * FROM users WHERE username = ?", [username])
+            user = cur.fetchone()
+            if user is None:
+                flash("ERROR: USERNAME DOES NOT EXIST", "danger")
+            else:
+                print(user["password"])
+                if check_password_hash(user["password"], password):
+                    session["username"] = username
+                    return render_template('index.html')
+                else:
+                    flash("ERROR: INCORRECT PASSWORD", "danger")
+
+        # Register Option
+        elif option == "register":
+            password = generate_password_hash(password)
+            cur.execute("SELECT * FROM users WHERE username = ?", [username])
+            if cur.fetchone() is not None:
+                flash("ERROR: USERNAME ALREADY EXISTS", "danger")
+            else:
+                cur.execute("INSERT INTO users (username, password) VALUES (?, ?)", [username, password])
+                conn.commit()
+                flash("SUCCESS: ACCOUNT CREATED", "success")
+        else:
+            flash("ERROR: OPTION NOT VALID")
+    return render_template('login.html')
+
+@app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == "POST":
         content = request.form['link']
