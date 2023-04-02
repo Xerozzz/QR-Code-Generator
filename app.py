@@ -11,8 +11,13 @@ if __name__ == '__main__':
 
 @app.before_request
 def check_login():
-    if "username" not in session and request.endpoint != 'login':
-        return redirect(url_for('login'))
+    try:
+        value = session["username"]
+    except: 
+        print("Test")
+        if request.endpoint != 'login':
+            return redirect(url_for('login'))
+        return redirect(url_for('index'))
 
 def db_connect():
     conn = sqlite3.connect('database.db')
@@ -26,9 +31,7 @@ def logout():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    print("Test")
     if request.method == "POST":
-        print("Test")
         # Get form information
         username = request.form["username"]
         password = request.form["password"]
@@ -69,8 +72,15 @@ def login():
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == "POST":
+        file = request.files['file'].read()
         content = request.form['link']
-        QR(content)
+        save = request.form['save']
+        if save == "on":
+            conn = db_connect()
+            cur = conn.cursor()
+            res = cur.execute("UPDATE users SET logo = ? WHERE username = ?", [file, session["username"]])
+            conn.commit()
+        # QR(content)
         return render_template('index.html', submit=True)
     return render_template('index.html')
 

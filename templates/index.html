@@ -3,9 +3,13 @@
 {% block content %}
 <h1>QR Code Generator</h1>
 <p>Why pay when you can make free one yourself</p>
-<form method="post">
-    <label for="link">Link to QR:</label>
+<form method="post" enctype="multipart/form-data">
+    <label for="link">Link to QR:</label><br>
     <input type="text" id="link" name="link" size="60"><br><br>
+    <label for="link">Image (Optional, meant for custom QRs)</label><br>
+    <input type="file" id="file" name="file"><br><br>
+    <label for="save">Save image for future use by default? You can only save one</label><br>
+    <input type="checkbox" id="save" name="save"><br><br>
     <input type="submit" value="Submit">
 </form>
 
