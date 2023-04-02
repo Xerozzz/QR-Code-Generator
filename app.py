@@ -6,6 +6,11 @@ app = Flask(__name__)
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80)
 
+def db_connect():
+    conn = sqlite3.connect('database.db')
+    conn.row_factory = sqlite3.Row
+    return conn
+
 @app.route('/', methods=('GET', 'POST'))
 def index():
     if request.method == "POST":
