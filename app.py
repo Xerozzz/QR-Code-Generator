@@ -11,13 +11,8 @@ if __name__ == '__main__':
 
 @app.before_request
 def check_login():
-    try:
-        value = session["username"]
-    except: 
-        print("Test")
-        if request.endpoint != 'login':
-            return redirect(url_for('login'))
-        return redirect(url_for('index'))
+    if session.get("logged_in", default=False) == False and request.endpoint != 'login':
+        return redirect(url_for('login'))
 
 def db_connect():
     conn = sqlite3.connect('database.db')
@@ -32,6 +27,9 @@ def logout():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == "POST":
+        if session.get("logged_in", default=False) == True:
+            return redirect(url_for('index'))
+
         # Get form information
         username = request.form["username"]
         password = request.form["password"]
@@ -51,6 +49,7 @@ def login():
                 print(user["password"])
                 if check_password_hash(user["password"], password):
                     session["username"] = username
+                    session["logged_in"] = True
                     return render_template('index.html')
                 else:
                     flash("ERROR: INCORRECT PASSWORD", "danger")
