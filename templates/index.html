@@ -3,7 +3,7 @@
 {% block content %}
 <h1>QR Code Generator</h1>
 <p>Why pay when you can make free one yourself</p>
-<form method="post" enctype="multipart/form-data">
+<form method="post" enctype="multipart/form-data" action="{{ url_for('qr') }}">
     <label for="link">Link to QR:</label><br>
     <input type="text" id="link" name="link" size="60"><br><br>
     <label for="link">Image (Optional, meant for custom QRs)</label><br>
@@ -12,10 +12,4 @@
     <input type="checkbox" id="save" name="save"><br><br>
     <input type="submit" value="Submit">
 </form>
-
-{% if submit == True %}
-    <h2>QR Code:</h2>
-    <p>Right clicks and save or copy image!</p>
-    <img src="{{url_for('static', filename='QR.png')}}" align="middle" />
-{% endif %}
 {% endblock %}

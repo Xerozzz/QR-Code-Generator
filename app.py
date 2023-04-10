@@ -1,7 +1,8 @@
-from flask import Flask, render_template, request, session, flash, redirect, url_for
+from flask import Flask, render_template, request, session, flash, redirect, send_file
 import qrcode
 import sqlite3
 from PIL import Image
+import io
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
@@ -21,7 +22,7 @@ def db_connect():
 
 @app.route('/logout', methods=['GET'])
 def logout():
-    session.pop("username")
+    session.pop("logged_in")
     return redirect(url_for('login'))
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -46,7 +47,6 @@ def login():
             if user is None:
                 flash("ERROR: USERNAME DOES NOT EXIST", "danger")
             else:
-                print(user["password"])
                 if check_password_hash(user["password"], password):
                     session["username"] = username
                     session["logged_in"] = True
@@ -70,28 +70,33 @@ def login():
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    if request.method == "POST":
-        file = request.files['file'].read()
-        content = request.form['link']
-        save = request.form['save']
-        if save == "on":
-            conn = db_connect()
-            cur = conn.cursor()
-            res = cur.execute("UPDATE users SET logo = ? WHERE username = ?", [file, session["username"]])
-            conn.commit()
-        # QR(content)
-        return render_template('index.html', submit=True)
+    
     return render_template('index.html')
 
-def QR(link):
+@app.route('/qr', methods=['POST'])
+def qr():
+    file = request.files['file'].read()
+    link = request.form['link']
+    save = request.form['save']
+    if save == "on":
+        conn = db_connect()
+        cur = conn.cursor()
+        res = cur.execute("UPDATE users SET logo = ? WHERE username = ?", [file, session["username"]])
+        conn.commit()
     # taking image which user wants
     # in the QR code center
-    Logo_link = 'logo.png'
-    
-    logo = Image.open(Logo_link)
-    
+    conn = db_connect()
+    cur = conn.cursor()
+    res = cur.execute("SELECT logo from USERS WHERE username = ?", [session["username"]]) 
+    logo_blob = res.fetchone()[0]
+    logo_bytes = bytes(logo_blob)
+
+    # convert bytes to image
+    logo = Image.open(io.BytesIO(logo_bytes))
+
+
     # taking base width
-    basewidth = 100
+    basewidth = 150
     
     # adjust image size
     wpercent = (basewidth/float(logo.size[0]))
@@ -122,6 +127,17 @@ def QR(link):
         (QRimg.size[1] - logo.size[1]) // 2)
     QRimg.paste(logo, pos)
     
-    # save the QR code generated
-    print("Done!")
-    QRimg.save('./static/QR.png')
+    # create an in-memory buffer to store the image data
+    img_buffer = io.BytesIO()
+    # save the QR code generated to the buffer
+    QRimg.save(img_buffer, format='PNG')
+    # move the buffer's position to the start
+    img_buffer.seek(0)
+
+    # return the image data as a response
+    return send_file(
+        img_buffer,
+        mimetype='image/png',
+        as_attachment=True,
+        attachment_filename="qr.png"
+    )
