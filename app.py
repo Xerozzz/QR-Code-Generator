@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, session, flash, redirect, send_file
+from flask import Flask, render_template, request, session, flash, redirect, send_file, url_for
 import qrcode
 import sqlite3
 from PIL import Image
@@ -96,7 +96,7 @@ def qr():
 
 
     # taking base width
-    basewidth = 150
+    basewidth = 60
     
     # adjust image size
     wpercent = (basewidth/float(logo.size[0]))
@@ -139,5 +139,5 @@ def qr():
         img_buffer,
         mimetype='image/png',
         as_attachment=True,
-        attachment_filename="qr.png"
+        download_name="qr.png"
     )
